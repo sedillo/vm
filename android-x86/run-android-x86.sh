@@ -15,4 +15,7 @@ qemu-system-x86_64 -enable-kvm \
     -device virtio-vga,virgl=on \
     -display sdl,gl=on
 
-
+# Some android distributions will not boot and 
+# leave you at here: consolee:/ #
+# You can try removing this line to fix
+#    -device virtio-vga,virgl=on \
