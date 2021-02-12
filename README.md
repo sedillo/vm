@@ -14,5 +14,7 @@ Open Remote viewer and connect to spice://127.0.0.1:5902
 Install Ubuntu and hit enter when told to restart.
 It should reboot into installed Ubuntu (i.e. it shouldn't ask you to install again
 
+## References
+https://ostechnix.com/install-and-configure-kvm-in-ubuntu-20-04-headless-server/
 
-
+https://blog.programster.org/kvm-cheatsheet
