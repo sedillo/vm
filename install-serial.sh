@@ -1,9 +1,9 @@
 #!/bin/bash
 
 sudo virt-install \
---name ubuntu2004 \
+--name ubuntu-${NAME} \
 --ram 4096 \
---disk path=./disk/ubuntu-2010-server-vm1,size=100 \
+--disk path=./disk/ubuntu-2004-${NAME},size=100 \
 --vcpus 2 \
 --os-type linux \
 --os-variant ubuntu20.04 \
