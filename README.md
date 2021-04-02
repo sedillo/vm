@@ -1,8 +1,37 @@
 # vm
 
-# Host OS Installation
+## Host OS Installation
 ```bash
 git clone https://github.com/virt-manager/virt-manager
+```
+
+## Example bridge file
+```yaml
+network:
+  ethernets:
+    eno1:
+      dhcp4: false
+      dhcp4: false
+  bridges:
+    br0:
+      interfaces: [ eno1 ]
+      addresses: [192.168.17.68/24]
+      gateway4: 192.168.17.1
+      mtu: 1500
+      nameservers:
+        addresses: [8.8.8.8,8.8.4.4]
+      parameters:
+        stp: true
+        forward-delay: 4
+      dhcp4: no
+      dhcp6: no
+  version: 2
+# This is the network config written by 'subiquity'
+network:
+  ethernets:
+    eno1:
+      dhcp4: true
+  version: 2
 ```
 
 ## Ubuntu VM 20.10 Desktop
