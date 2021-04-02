@@ -1,5 +1,10 @@
 # vm
 
+# Host OS Installation
+```bash
+git clone https://github.com/virt-manager/virt-manager
+```
+
 ## Ubuntu VM 20.10 Desktop
 ```bash
 sudo virt-install --name ubuntu-2010-desktop  \
