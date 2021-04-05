@@ -1,22 +1,60 @@
 # vm
 
-## Host OS Installation
+This guide will show you how to set up a 
+- Virsh and KVM to launch VMs on the host OS
+- Launch guest VMs
+- Build Guest ESP on top of virsh
+
+Prerequisites
+- Ubuntu Server 20.04 Host OS
+- OpenSSH enabled
+- Host exists on subnet behind a router
+- External access to the internet
+
+## Host OS - Ubuntu Server 20.04 Configuration
+Reference from: https://ostechnix.com/install-and-configure-kvm-in-ubuntu-20-04-headless-server/
+
+### Install libs
 ```bash
-git clone https://github.com/virt-manager/virt-manager
+git -C ~ clone git@github.com:sedillo/vm.git
+
+sudo apt install -y qemu qemu-kvm libvirt-clients libvirt-daemon-system virtinst bridge-utils
+sudo systemctl enable libvirtd
+sudo systemctl start libvirtd
+systemctl status libvirtd
+
+IP_ADDRESS=$(ip route get 1.2.3.4 | awk '{printf "%s" , $7}')
+IP_GATEWAY=$(ip route get 1.2.3.4 | awk '{printf "%s" , $7}')
+
+cd ~/vm/bridge/
+./install.sh
+sudo reboot
 ```
 
-## Example bridge file
+### Network bridge
+Destroy default network bridge
+```bash
+virsh net-destroy default
+virsh net-undefine default
+
+# If the above commands don't work you can try these
+# sudo ip link delete virbr0 type bridge
+# sudo ip link delete virbr0-nic
+```
+
+Define new network bridge with $IP_ADDRESS and $IP_GATEWAY in file ~/vm/bridge/00-install-config.yaml
 ```yaml
+# This is the network config written by 'subiquity'
 network:
   ethernets:
     eno1:
       dhcp4: false
-      dhcp4: false
+      dhcp6: false
   bridges:
     br0:
       interfaces: [ eno1 ]
-      addresses: [192.168.17.68/24]
-      gateway4: 192.168.17.1
+      addresses: [${IP_ADDRESS}/24]
+      gateway4: ${IP_GATEWAY}
       mtu: 1500
       nameservers:
         addresses: [8.8.8.8,8.8.4.4]
@@ -26,12 +64,30 @@ network:
       dhcp4: no
       dhcp6: no
   version: 2
-# This is the network config written by 'subiquity'
-network:
-  ethernets:
-    eno1:
-      dhcp4: true
-  version: 2
+```
+Start bridge
+```bash
+sudo cp /etc/netplan/00-installer-config.yaml{,.backup}
+sudo cp 00-installer-config.yaml /etc/netplan/00-installer-config.yaml
+sudo netplan --debug  apply
+```
+Verify bridge exists
+```bash
+brctl show br0
+```
+Set KVM to use br0 bridge
+```bash
+#verify nothing exists
+virsh net-list --all
+
+#Apply changes
+cd ~/vm/bridge
+virsh net-define host-bridge.xml
+virsh net-start host-bridge
+virsh net-autostart host-bridge
+
+#Verify changes worked
+virsh net-list --all
 ```
 
 ## Ubuntu VM 20.10 Desktop
@@ -101,6 +157,11 @@ virsh undefine <VM>
 ```
 
 ## References
-https://ostechnix.com/install-and-configure-kvm-in-ubuntu-20-04-headless-server/
 
 https://blog.programster.org/kvm-cheatsheet
+
+### TODO: Update virt-manager
+```bash
+git clone https://github.com/virt-manager/virt-manager
+```
+
