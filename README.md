@@ -1,9 +1,8 @@
-# vm
+# VM - Virtual Machine Setup
 
 This guide will show you how to set up a 
 - Virsh and KVM to launch VMs on the host OS
-- Launch guest VMs
-- Build Guest ESP on top of virsh
+- Launch guest VMs (like ESP)
 
 Prerequisites
 - Ubuntu Server 20.04 Host OS
@@ -11,7 +10,7 @@ Prerequisites
 - Host exists on subnet behind a router
 - External access to the internet
 
-## Host OS - Ubuntu Server 20.04 Configuration
+## Host OS - Virsh and KVM setup
 Reference from: https://ostechnix.com/install-and-configure-kvm-in-ubuntu-20-04-headless-server/
 
 ### Install libs
@@ -19,6 +18,13 @@ Reference from: https://ostechnix.com/install-and-configure-kvm-in-ubuntu-20-04-
 git -C ~ clone git@github.com:sedillo/vm.git
 
 sudo apt install -y qemu qemu-kvm libvirt-clients libvirt-daemon-system virtinst bridge-utils
+
+#Open the file /etc/libvirt/qemu.conf
+sudo vi /etc/libvirt/qemu.conf
+#And uncommment this line
+vnc_listen = "0.0.0.0"
+
+sudo systemctl stop libvirtd
 sudo systemctl enable libvirtd
 sudo systemctl start libvirtd
 systemctl status libvirtd
@@ -90,39 +96,45 @@ virsh net-autostart host-bridge
 virsh net-list --all
 ```
 
-## Ubuntu VM 20.10 Desktop
-```bash
-sudo virt-install --name ubuntu-2010-desktop  \
-  --ram=8192 --vcpus=4 \
-  --cpu host --hvm \
-  --disk path=/var/lib/libvirt/images/ubuntu-18.04-vm1,size=10 \
-  --cdrom ./ubuntu-20.10-desktop-amd64.iso \
-  --network bridge=br0 --graphics vnc
-    
-```
-Open Remote viewer and connect to spice://127.0.0.1:5902
-Install Ubuntu and hit enter when told to restart.
-It should reboot into installed Ubuntu (i.e. it shouldn't ask you to install again
+## Downloading ISOs
+Some scripts already exist for downloading most up-to-date ISOs zsync
 
-## Virsh Helpful Commands
-
-### Install ESP
+For example, do this for ESP
 ```bash
-NAME=esp ./install-serial.sh
+cd ~/vm/iso
+./download-ubuntu-2010-server.sh
 ```
+## Launch VM
+Using a tool like remmina or VNC Viewer open a VNC viewer to ${IP_ADDRESS}:5901
+```bash
+./install-esp.sh
+```
+- Continue without Updating
+- IMPORTANT
+-   make sure the network connection gets an IP from your subnet 
+-   And make sure you remember the IP address
 - Guided - Use entire disk
 - Write changes to disk
 - Install as normal, make sure to install OpenSSH-server package
+- Don't install any extra package
+- Let the security update finish
+- VNC Viewer should autmatically reboot into the harddisk
 
-Find the ESP IP address by using:
+## Install ESP on VM
+
+Log in to ESP with 
 ```bash
-nmap -sP 192.168.17.0/24
+ssh ${USER}@{ESP_ADDRESS}
+#If you forgot the IP you can scan with this
+#nmap -sP 192.168.17.0/24
 ```
 
 Install ESP
 ```bash
+# become super user
 sudo su -
 
+# Install docker and compose
 mkdir -p /usr/local/bin
 wget -O /usr/local/bin/docker-compose "https://github.com/docker/compose/releases/download/1.25.4/docker-compose-$(uname -s)-$(uname -m)"
 chmod a+x /usr/local/bin/docker-compose
@@ -130,33 +142,31 @@ chmod a+x /usr/local/bin/docker-compose
 wget get.docker.io -O /tmp/docker-install.sh
 chmod +x /tmp/docker-install.sh
 /tmp/docker-install.sh
+docker ps
 
+# Download and build ESP
 cd /opt
 git clone -b master --depth=1 https://github.com/intel/Edge-Software-Provisioner.git esp
 cd esp
-
 ./build.sh
+
+# Run using this command
 ./run.sh
 ```
 
-### Launch Guest VM Using ESP
-Install a VNC Client
-- Windows: VNC Viewer
-- Linux: Remmina
-
+## Launch a second VM to boot from ESP VM
 ```bash
 ./install-pxe.sh
 ```
 Then connect VNC Client to Port 5902 (or as defined in ./install-pxe.sh file)
 
-### Shutdown and Undefine VM
-```bash
-virsh list --all
-virsh shutdown <VM>
-virsh undefine <VM>
-```
+## Launch Physical device from ESP VM
+To do this just plug physical device into network with ESP VM on it
+
+Hit specificied function key to go into boot menu and choose Network IPV4 PXE Boot
 
 ## References
+https://docs.fedoraproject.org/en-US/Fedora/18/html/Virtualization_Administration_Guide/chap-Virtualization_Administration_Guide-Managing_guests_with_virsh.html
 
 https://blog.programster.org/kvm-cheatsheet
 
