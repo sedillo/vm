@@ -30,7 +30,7 @@ sudo systemctl start libvirtd
 systemctl status libvirtd
 
 IP_ADDRESS=$(ip route get 1.2.3.4 | awk '{printf "%s" , $7}')
-IP_GATEWAY=$(ip route get 1.2.3.4 | awk '{printf "%s" , $7}')
+IP_GATEWAY=$(ip route get 1.2.3.4 | awk '{printf "%s" , $3}')
 
 cd ~/vm/bridge/
 ./install.sh
