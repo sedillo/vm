@@ -165,6 +165,13 @@ To do this just plug physical device into network with ESP VM on it
 
 Hit specificied function key to go into boot menu and choose Network IPV4 PXE Boot
 
+## Launch Apache Server
+```bash
+sudo apt-get install apache2
+sudo service apache2 start
+sudo mkdir /var/www/html/files
+```
+
 ## References
 https://docs.fedoraproject.org/en-US/Fedora/18/html/Virtualization_Administration_Guide/chap-Virtualization_Administration_Guide-Managing_guests_with_virsh.html
 
