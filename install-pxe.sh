@@ -3,12 +3,13 @@
 set -x
 
 sudo virt-install \
-  --name port-and-amt \
+  --name pxe-${NAME} \
   --ram=8192 \
   --vcpus=4 \
   --cpu host --hvm \
-  --disk path=./disk/port-and-amt-vm1,size=100 \
+  --disk path=./disk/pxe-${NAME},size=20 \
   --network bridge=br0 \
   --pxe \
   --os-type=generic \
-  --graphics vnc,port=5902 &
+  --graphics vnc,port=${VNC_PORT} &
+
